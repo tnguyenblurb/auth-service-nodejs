@@ -15,74 +15,62 @@ const UserScheme = {
   }
 };
 
-class UsersManager {
+exports.parseUser = function(body) {
+  let user = UserScheme;
+  user.username = body.username;
+  user.email = body.email;
+  user.password = body.password;
+  return user;
+}
 
-  constructor(req) {
-    this.req = req;
-  }
+exports.createUser = function(user) {
+  user.password = UsersManager.hashPassword(user.password);
+  user.otp = UsersManager.generateOTP();
+  return db.save(user, 'users');
+}
 
-  parseUser() {
-    let user = UserScheme;
-    user.username = this.req.body.username;
-    user.email = this.req.body.email;
-    user.password = this.req.body.password;
-    return user;
-  }
+exports.validateOTP = function(uuid) {
+  if (!uuid) return null;
 
-  createUser() {
-    let user = this.parseUser();
-    user.password = UsersManager.hashPassword(user.password);
-    user.otp = UsersManager.generateOTP();
-    return db.save(user, 'users');
-  }
+  let user = UsersManager.findUserByUuid(req.get('uuid'));
+  if (!user) return null;
 
-  
+  user.otp = UsersManager.generateOTP();
+  UsersManager.updateUser(user);
+  return user.otp.uuid;
+}
 
-  validateOTP() {
-    let uuid = this.req.get('uuid');
-    if (!uuid) return null;
+exports.activate = function(user) {
+  user.actived = true;
+  updateUser(user);
+}
 
-    let user = UsersManager.findUserByUuid(req.get('uuid'));
-    if (!user) return null;
+exports.authenticate = function(email, password) {
+  let user = UsersManager.findUserByEmail(email);
+  return bcrypt.compareSync(user.password, password);
+}
 
-    user.otp = UsersManager.generateOTP();
-    UsersManager.updateUser(user);
-    return user.otp.uuid;
-  }
+exports.findUserByEmail = function(email) {
+  let users = db.loadTable('users');
+  return users.find(user => user.email === email);
+}
 
-  activate() {
+exports.findUserByUuid = function(uuid) {
+  let users = db.loadTable('users');
+  return users.find(user => user.otp.uuid === email);
+}
 
-  }
+function hashPassword(password) {
+  return bcrypt.hashSync(password, 10);
+}
 
-  authenticate() {
-    let user = UsersManager.findUserByEmail(this.user.email);
-    return bcrypt.compareSync(user.password, this.user.password);
-  }
-
-  static updateUser(user) {
-    return db.save(user, 'users');
-  }
-
-  static findUserByEmail(email) {
-    let users = db.loadTable('users');
-    return users.find(user => user.email === email);
-  }
-
-  static findUserByUuid(uuid) {
-    let users = db.loadTable('users');
-    return users.find(user => user.otp.uuid === email);
-  }
-
-  static hashPassword(password) {
-    return bcrypt.hashSync(password, 10);
-  }
-
-  static generateOTP() {
-    return {
-      uuid: uuidv1(),
-      expired_at: new Date(now.getTime + OTP_EXIRED_MINUTES*60*1000)
-    }
+function generateOTP() {
+  return {
+    uuid: uuidv1(),
+    expired_at: new Date(now.getTime + OTP_EXIRED_MINUTES*60*1000)
   }
 }
 
-module.exports = UsersManager;
+function updateUser(user) {
+  return db.save(user, 'users');
+}

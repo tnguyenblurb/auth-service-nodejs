@@ -13,20 +13,17 @@ const usersValidator = {
   code: check('code').isUUID,
 };
 
-const signup = [
+exports.signup = [
   usersValidator.username,
   usersValidator.email,
   usersValidator.password,
   usersValidator.existed_email
 ]
-
-const signin = [
+exports.signin = [
   usersValidator.email,
 ];
 
-const activate = [
+exports.activate = [
   usersValidator.email,
   usersValidator.code
 ];
-
-module.exports = {signup, signin, activate};
