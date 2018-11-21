@@ -2,9 +2,9 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
-var OTPValidator = require('./middlewares/OTPValidator');
+var otpValidator = require('./middlewares/otpValidator');
 
-const port = 3000;
+const port = 5000;
 
 var usersRouter = require('./user/usersRouter');
 
@@ -16,7 +16,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use(/^((?!\/signup).)*$/, OTPValidator);
+app.use(otpValidator.IGNORE_ACTIONS, otpValidator.validator);
 
 app.use('/users', usersRouter);
 
