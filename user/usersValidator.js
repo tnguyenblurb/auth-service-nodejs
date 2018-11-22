@@ -5,7 +5,7 @@ const usersValidator = {
   username: check('username').isLength({min: 1}),
   email: check('email').isEmail(),
   password: check('password').isLength({min: 6}),
-  existed_email: body('email', 'username').custom(email => {
+  email_already_in_use: body('email').custom(email => {
     if (UsersManager.findUserByEmail(email)) throw new Error('E-mail already in use');
 
     return true;
@@ -17,7 +17,7 @@ exports.signup = [
   usersValidator.username,
   usersValidator.email,
   usersValidator.password,
-  usersValidator.existed_email
+  usersValidator.email_already_in_use
 ]
 exports.signin = [
   usersValidator.email,

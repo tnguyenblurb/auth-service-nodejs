@@ -1,17 +1,24 @@
 const path = require('path');
 const fs = require('fs');
+const uuidv1 = require('uuid/v1');
 const db_path = path.join(__dirname, 'db.json');
-const save = (data, table) => {
+const save = (obj, key) => {
   let db = loadDatabase();
-  if (!(table in db)) {
-    db[table] = [];
+  if (!(key in db)) {
+    db[key] = [];
   }
   
-  db[table].push(data);
+  if (!obj.id) {
+    obj.id = uuidv1();
+    db[key].push(obj);
+  } else {
+    index = db[key].findIndex(row => row.id === obj.id);
+    index < 0 ? db[key].push(obj) : db[key][index] = obj;
+  }
 
   try {
     fs.writeFileSync(db_path, JSON.stringify(db));
-    return data;
+    return obj;
   } catch (err) {
     console.error(err);
     return false;
