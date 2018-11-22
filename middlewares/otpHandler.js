@@ -3,6 +3,8 @@ const UsersManager = require('../user/usersManager');
 
 const validator = (req, res, next) => {
   let uuid = req.get('uuid');
+  if (!uuid) return next('Invalid uuid');
+  
   uuid = UsersManager.validateOTP(uuid);
 
   // error page

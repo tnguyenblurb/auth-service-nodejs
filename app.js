@@ -2,7 +2,7 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
-var otpValidator = require('./middlewares/otpValidator');
+var otpHandler = require('./middlewares/otpHandler');
 var errorHandler = require('./middlewares/errorHandler');
 var usersRouter = require('./user/usersRouter');
 const PORT = 5000;
@@ -16,7 +16,7 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // middleware validate OTP
-app.use(otpValidator.IGNORE_ACTIONS, otpValidator.validator);
+app.use(otpHandler.IGNORE_ACTIONS, otpHandler.validator);
 
 app.use('/users', usersRouter);
 
