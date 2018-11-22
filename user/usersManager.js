@@ -92,6 +92,28 @@ exports.findUserByEmail = function(email) {
   return users.find(user => user.email === email);
 }
 
+exports.search = function(searchData) {
+  let startIndex = searchData.page * searchData.limit;
+  let endIndex = searchData.page * searchData.limit + searchData.limit;
+  let users = db.loadTable('users');
+  users = users.filter(user => {
+    if (searchData.name) {
+      if (!user.username.startsWith(searchData.name)) return false;
+    }
+  
+    if (searchData.email) {
+      if (!user.email.startsWith(searchData.email)) return false;
+    }
+  
+    if (searchData.latest_access) {
+      if (user.last_login_at < searchData.latest_access) return false;
+    }
+
+    return true;
+  }).slice(startIndex, endIndex);
+  return users;
+}
+
 exports.activateUrl = function(req, user) {
   return `${req.protocol}://${req.get('host')}/users/activate/${user.email}/${user.activate_code}`;
 }

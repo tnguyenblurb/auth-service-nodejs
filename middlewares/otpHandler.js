@@ -1,4 +1,4 @@
-const IGNORE_ACTIONS = /^(?!.*(\/users\/signup|\/users\/activate|\/users\/signin)).*$/; // list of actions don't need OTP in header
+const IGNORE_ACTIONS = /^(?!.*(\/users\/signup|\/users\/activate|\/users\/signin|\/search)).*$/; // list of actions don't need OTP in header
 const UsersManager = require('../user/usersManager');
 
 const validator = (req, res, next) => {

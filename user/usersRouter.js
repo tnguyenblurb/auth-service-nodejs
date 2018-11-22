@@ -66,4 +66,22 @@ router.post('/signout', (req, res, next) => {
   });
 });
 
+router.get('/search', (req, res, next) => {
+  let searchData = {
+    name: req.query.name,
+    email: req.query.email,
+    latest_access: req.query.latest_access,
+    page: Math.max(req.query.page || 0, 0),
+    limit: Math.max(req.query.limit || 100, 0), 
+  };
+
+  let users = UsersManager.search(searchData);
+
+  res.json({
+    success: true,
+    data: users
+  })
+
+});
+
 module.exports = router;
