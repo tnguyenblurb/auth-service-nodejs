@@ -3,7 +3,7 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 
-const config = require('./config');
+const config = require('./config/config');
 var headerHandler = require('./middlewares/headerHandler');
 var errorHandler = require('./middlewares/errorHandler');
 var authorizationHandler = require('./middlewares/authorizationHandler');
@@ -21,7 +21,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(headerHandler.headerValidator);
 app.use(authorizationHandler.authorization);
 app.use(headerHandler.IGNORE_ACTIONS, headerHandler.OTPValidator);
-app.use('/users', usersRouter);
+app.use('/api', usersRouter);
 
 // middleware handling errors 
 app.use(errorHandler);

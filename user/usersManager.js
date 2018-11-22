@@ -117,7 +117,7 @@ exports.search = function(searchData) {
 }
 
 exports.activateUrl = function(req, user) {
-  return `${req.protocol}://${req.get('host')}/users/activate/${user.email}/${user.activate_code}`;
+  return `${req.protocol}://${req.get('host')}/api/activate/${user.email}/${user.activate_code}`;
 }
 
 exports.findUserByUuid = function(uuid) {

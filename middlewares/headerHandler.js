@@ -1,6 +1,6 @@
 const IGNORE_ACTIONS = /^(?!.*(\/users\/signup|\/users\/activate|\/users\/signin|\/search)).*$/; // list of actions don't need OTP in header
 const UsersManager = require('../user/usersManager');
-const config = require('../config');
+const config = require('../config/config');
 
 const OTPValidator = (req, res, next) => {
   let uuid = req.get('uuid');

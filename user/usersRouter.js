@@ -4,7 +4,7 @@ const { validationResult } = require('express-validator/check');
 var jsonTemplate = require('json-templater/object');
 const UsersManager = require('./usersManager');
 const UsersValidator = require('./UsersValidator');
-const config = require('../config');
+const config = require('../config/config');
 
 router.post('/signup', UsersValidator.signup, (req, res, next) => {
   // validate input fields
