@@ -4,7 +4,7 @@ const UsersManager = require('./usersManager');
 const usersValidator = {
   username: check('username').isLength({min: 1}),
   email: check('email').isEmail(),
-  password: check('password').isLength({min: 6}),
+  password: check('password').isLength({min: 6}).withMessage('Password must contain at least 6 letters.'),
   email_already_in_use: body('email').custom(email => {
     if (UsersManager.findUserByEmail(email)) throw new Error('E-mail already in use');
 

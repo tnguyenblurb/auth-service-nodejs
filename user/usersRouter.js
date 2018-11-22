@@ -1,8 +1,10 @@
 const express = require('express');
 const router = express.Router();
+const { validationResult } = require('express-validator/check');
+var jsonTemplate = require('json-templater/object');
 const UsersManager = require('./usersManager');
 const UsersValidator = require('./UsersValidator');
-const { validationResult } = require('express-validator/check');
+const config = require('../config');
 
 router.post('/signup', UsersValidator.signup, (req, res, next) => {
   // validate input fields
@@ -15,15 +17,14 @@ router.post('/signup', UsersValidator.signup, (req, res, next) => {
   // error page
   if (!user) return next('Something went wrong!');
   
-  res.json({
-    success: true, 
-    activate_url: UsersManager.activateUrl(req, user),
-    data: {
+  res.json(jsonTemplate(
+    require(`../view/jsonTemplate/signup.${req.get(config.XDeviceKey)}.json`),
+    {
       email: user.email,
       name: user.username,
       created_at: user.created_at
-  }});
-  
+    }
+  ));
 });
 
 router.get('/activate/:email/:code', (req, res, next) => {
@@ -46,14 +47,16 @@ router.post('/signin', UsersValidator.signin, (req, res, next) => {
   if (user.activate_code) return next (`Please activate your account by clicking at ${UsersManager.activateUrl(req, user)}`);
 
   res.set('uuid', user.otp.uuid);
-  res.json({
-    success: true, 
-    data: {
+
+  res.json(jsonTemplate(
+    require(`../view/jsonTemplate/signin.${req.get(config.XDeviceKey)}.json`),
+    {
       email: user.email,
       name: user.username,
       last_login_at: user.last_login_at,
       created_at: user.created_at
-  }});
+    }
+  ));
 });
 
 router.post('/signout', (req, res, next) => {

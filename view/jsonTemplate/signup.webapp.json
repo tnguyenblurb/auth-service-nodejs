@@ -1,0 +1,8 @@
+{
+  "success": true,
+  "data": {
+    "login_id": "{{email}}",
+    "full_name": "{{name}}",
+    "created_date": "{{created_at}}"
+  }
+}
