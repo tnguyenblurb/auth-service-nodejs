@@ -5,11 +5,13 @@ const db_path = path.join(__dirname, 'db.json');
 const save = (obj, key) => {
   let db = loadDatabase();
   if (!(key in db)) {
+    console.log('error here');
     db[key] = [];
   }
   
   if (!obj.id) {
     obj.id = uuidv1();
+    console.log(`======================${obj.id}`);
     db[key].push(obj);
   } else {
     index = db[key].findIndex(row => row.id === obj.id);
@@ -40,6 +42,7 @@ const loadDatabase = () => {
 
 const loadTable = (table) => {
   let db = loadDatabase();
+  if (db[table]) console.log(`row count: ${db[table].length}`);
   return db[table] || [];
 }
 

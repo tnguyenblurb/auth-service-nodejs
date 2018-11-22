@@ -6,6 +6,7 @@ var logger = require('morgan');
 const config = require('./config');
 var headerHandler = require('./middlewares/headerHandler');
 var errorHandler = require('./middlewares/errorHandler');
+var authorizationHandler = require('./middlewares/authorizationHandler');
 var usersRouter = require('./user/usersRouter');
 
 var app = express();
@@ -18,6 +19,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // middleware validate OTP
 app.use(headerHandler.headerValidator);
+app.use(authorizationHandler.authorization);
 app.use(headerHandler.IGNORE_ACTIONS, headerHandler.OTPValidator);
 app.use('/users', usersRouter);
 

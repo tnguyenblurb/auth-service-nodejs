@@ -3,6 +3,7 @@
   "data": {
     "email": "{{email}}",
     "fullname": "{{name}}",
+    "role": "{{role}}",
     "created": "{{created_at}}"
   }
 }

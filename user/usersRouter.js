@@ -22,6 +22,7 @@ router.post('/signup', UsersValidator.signup, (req, res, next) => {
     {
       email: user.email,
       name: user.username,
+      role: user.role,
       created_at: user.created_at
     }
   ));
@@ -53,6 +54,7 @@ router.post('/signin', UsersValidator.signin, (req, res, next) => {
     {
       email: user.email,
       name: user.username,
+      role: user.role,
       last_login_at: user.last_login_at,
       created_at: user.created_at
     }
@@ -82,7 +84,14 @@ router.get('/search', (req, res, next) => {
 
   res.json({
     success: true,
-    data: users
+    data: users.map(user => jsonTemplate(
+      require(`../view/jsonTemplate/search.json`),
+      {
+        email: user.email,
+        name: user.username,
+        role: user.role,
+      }
+    ))
   })
 
 });

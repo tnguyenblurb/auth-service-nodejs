@@ -11,6 +11,7 @@ const UserScheme = {
   username: null,
   email: null,
   password: null,
+  role: 'user',
   activate_code: null,
   otp: {
     uuid: null,
@@ -21,10 +22,11 @@ const UserScheme = {
 };
 
 exports.parseUser = function(body) {
-  let user = UserScheme;
+  let user = {};
   user.username = body.username;
   user.email = body.email;
   user.password = body.password;
+  user.role = body.role || 'user';
   return user;
 }
 
@@ -37,7 +39,7 @@ exports.createUser = function(user) {
 }
 
 exports.validateOTP = function(uuid) {
-  let user = findUserByUuid(uuid);
+  let user = _this.findUserByUuid(uuid);
   if (!user) return null;
   let expired = user.otp.expired_at >= (new Date()).toString();
   if (expired) {
@@ -78,7 +80,7 @@ exports.authenticate = function(email, password) {
 }
 
 exports.resetOtp = function(uuid) {
-  let user = findUserByUuid(uuid);
+  let user = _this.findUserByUuid(uuid);
   if (!user) return false;
 
   user.otp = {};
@@ -118,7 +120,7 @@ exports.activateUrl = function(req, user) {
   return `${req.protocol}://${req.get('host')}/users/activate/${user.email}/${user.activate_code}`;
 }
 
-function findUserByUuid(uuid) {
+exports.findUserByUuid = function(uuid) {
   let users = db.loadTable('users');
   return users.find(user => user.otp.uuid === uuid);
 }
