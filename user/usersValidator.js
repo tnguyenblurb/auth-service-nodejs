@@ -24,6 +24,5 @@ exports.signin = [
 ];
 
 exports.activate = [
-  usersValidator.email,
   usersValidator.code
 ];

@@ -24,19 +24,19 @@ exports.parseUser = function(body) {
 }
 
 exports.createUser = function(user) {
-  user.password = UsersManager.hashPassword(user.password);
-  user.otp = UsersManager.generateOTP();
+  user.password = hashPassword(user.password);
+  user.otp = generateOTP();
   return db.save(user, 'users');
 }
 
 exports.validateOTP = function(uuid) {
   if (!uuid) return null;
 
-  let user = UsersManager.findUserByUuid(req.get('uuid'));
+  let user = findUserByUuid(req.get('uuid'));
   if (!user) return null;
 
-  user.otp = UsersManager.generateOTP();
-  UsersManager.updateUser(user);
+  user.otp = generateOTP();
+  updateUser(user);
   return user.otp.uuid;
 }
 
@@ -46,7 +46,7 @@ exports.activate = function(user) {
 }
 
 exports.authenticate = function(email, password) {
-  let user = UsersManager.findUserByEmail(email);
+  let user = findUserByEmail(email);
   return bcrypt.compareSync(user.password, password);
 }
 
@@ -67,7 +67,7 @@ function hashPassword(password) {
 function generateOTP() {
   return {
     uuid: uuidv1(),
-    expired_at: new Date(now.getTime + OTP_EXIRED_MINUTES*60*1000)
+    expired_at: new Date((new Date()).getTime() + OTP_EXIRED_MINUTES*60*1000)
   }
 }
 
