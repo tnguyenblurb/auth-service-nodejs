@@ -26,6 +26,6 @@ app.use('/api', usersRouter);
 // middleware handling errors 
 app.use(errorHandler);
 
-app.listen(config.port, () => console.log(`Example app listening on port ${config.port}!`))
+app.listen(config.port, () => console.log(`Example app listening on port ${config.port}!`));
 
 module.exports = app;

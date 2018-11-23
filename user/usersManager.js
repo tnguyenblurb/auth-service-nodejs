@@ -6,24 +6,9 @@ const uuidv1 = require('uuid/v1');
 
 var _this = this;
 
-const UserScheme = {
-  id: null,
-  username: null,
-  email: null,
-  password: null,
-  role: 'user',
-  activate_code: null,
-  otp: {
-    uuid: null,
-    expired_at: null,
-  },
-  created_at: null,
-  last_login_at: null,
-};
-
 exports.parseUser = function(body) {
   let user = {};
-  user.username = body.username;
+  user.name = body.name;
   user.email = body.email;
   user.password = body.password;
   user.role = body.role || 'user';
@@ -35,23 +20,24 @@ exports.createUser = function(user) {
   user.password = hashPassword(user.password);
   user.activate_code = uuidv1();
   user.created_at = new Date();
+  user.tokens = [];
   return db.save(user, 'users');
 }
 
-exports.validateOTP = function(uuid) {
-  let user = _this.findUserByUuid(uuid);
+exports.validateAndRegenerateOTP = function(uuid) {
+  let {user, token} = _this.findUserAndTokenByUuid(uuid);
   if (!user) return null;
-  let expired = user.otp.expired_at >= (new Date()).toString();
+  let expired = token.expired_at >= (new Date()).toString();
   if (expired) {
     console.log(`${user.email} uuid is expired`);
-    user.otp = {};
-    updateUser(user);
+    _this.resetToken(uuid);
     return null;
   }
 
-  user.otp = generateOTP();
+  let newToken = generateToken(uuid);
+  user.tokens[user.tokens.indexOf(token)] = newToken;
   updateUser(user);
-  return user.otp.uuid;
+  return newToken;
 }
 
 exports.activate = function(email, code) {
@@ -67,23 +53,32 @@ exports.activate = function(email, code) {
 
 exports.authenticate = function(email, password) {
   let user = _this.findUserByEmail(email);
-  if (!user) return false;
+  if (!user) return {};
   let result = bcrypt.compareSync(password, user.password);
-  if (!result) return false;
-  if (result && user.activate_code) return user;
+  if (!result) return {};
 
-  user.otp = generateOTP();
+  // user needs to activate his account after registering
+  if (result && user.activate_code) return {user: user};
+
+  // support user to login on multi devices/platform
+  console.log('UsersManager.authenticate generateToken');
+
+  let token = generateToken()
+  user.tokens.push(token);
   user.last_login_at = new Date();
   updateUser(user);
 
-  return user;
+  return {
+    user: user,
+    token: token
+  };
 }
 
-exports.resetOtp = function(uuid) {
-  let user = _this.findUserByUuid(uuid);
-  if (!user) return false;
+exports.resetToken = function(uuid) {
+  let {user, token} = _this.findUserAndTokenByUuid(uuid);
+  if (!user || !token) return false;
 
-  user.otp = {};
+  user.tokens = user.tokens.map(token => token.uuid === uuid ? token = {} : token);
   updateUser(user);
   
   return true;
@@ -100,7 +95,7 @@ exports.search = function(searchData) {
   let users = db.loadTable('users');
   users = users.filter(user => {
     if (searchData.name) {
-      if (!user.username.startsWith(searchData.name)) return false;
+      if (!user.name.startsWith(searchData.name)) return false;
     }
   
     if (searchData.email) {
@@ -120,16 +115,27 @@ exports.activateUrl = function(req, user) {
   return `${req.protocol}://${req.get('host')}/api/activate/${user.email}/${user.activate_code}`;
 }
 
-exports.findUserByUuid = function(uuid) {
+exports.findUserAndTokenByUuid = function(uuid) {
   let users = db.loadTable('users');
-  return users.find(user => user.otp.uuid === uuid);
+  var result = {};
+  users.forEach(user => {
+    let token = user.tokens.find(token => token.uuid === uuid);
+    if (token) {
+      result = {
+        user: user,
+        token: token
+      };
+      return;
+    }
+  });
+  return result;
 }
 
 function hashPassword(password) {
   return bcrypt.hashSync(password, 10);
 }
 
-function generateOTP() {
+function generateToken() {
   return {
     uuid: uuidv1(),
     expired_at: new Date((new Date()).getTime() + OTP_EXIRED_MINUTES*60*1000)

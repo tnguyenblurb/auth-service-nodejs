@@ -1,9 +1,10 @@
 const authorization = {
   'admin': 'all',
   'user': [
-    'users/signup',
-    'users/login',
-    'users/logout'
+    'signup',
+    'activate',
+    'signin',
+    'signout'
   ]
 };
 

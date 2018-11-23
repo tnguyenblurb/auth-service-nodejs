@@ -1,4 +1,4 @@
-const IGNORE_ACTIONS = /^(?!.*(\/users\/signup|\/users\/activate|\/users\/signin|\/search)).*$/; // list of actions don't need OTP in header
+const IGNORE_ACTIONS = /^(?!.*(\/signup|\/activate|\/signin|\/signout)).*$/; // list of actions don't need OTP in header
 const UsersManager = require('../user/usersManager');
 const config = require('../config/config');
 
@@ -6,12 +6,12 @@ const OTPValidator = (req, res, next) => {
   let uuid = req.get('uuid');
   if (!uuid) return next('Invalid uuid');
   
-  uuid = UsersManager.validateOTP(uuid);
+  let token = UsersManager.validateAndRegenerateOTP(uuid);
 
   // error page
-  if (!uuid) return next('Invalid uuid');
+  if (!token) return next('Invalid uuid');
   
-  res.set('uuid', uuid);
+  res.set('uuid', token.uuid);
 
   next();
 };

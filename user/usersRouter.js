@@ -14,6 +14,7 @@ router.post('/signup', UsersValidator.signup, (req, res, next) => {
   let user = UsersManager.parseUser(req.body);
   user = UsersManager.createUser(user);
 
+  console.log(`/signup created user: ${user}`);
   // error page
   if (!user) return next('Something went wrong!');
   
@@ -21,7 +22,7 @@ router.post('/signup', UsersValidator.signup, (req, res, next) => {
     require(`../view/jsonTemplate/signup.${req.get(config.XDeviceKey)}.json`),
     {
       email: user.email,
-      name: user.username,
+      name: user.name,
       role: user.role,
       created_at: user.created_at
     }
@@ -42,18 +43,20 @@ router.post('/signin', UsersValidator.signin, (req, res, next) => {
 
   let email = req.body.email;
   let password = req.body.password;
-  let user = UsersManager.authenticate(email, password);
+  let {user, token} = UsersManager.authenticate(email, password);
 
+  console.log(`/signin authenticated: ${user}`);
+  
   if (!user) return next('Invalid email/password!');
   if (user.activate_code) return next (`Please activate your account by clicking at ${UsersManager.activateUrl(req, user)}`);
 
-  res.set('uuid', user.otp.uuid);
+  res.set('uuid', token.uuid);
 
   res.json(jsonTemplate(
     require(`../view/jsonTemplate/signin.${req.get(config.XDeviceKey)}.json`),
     {
       email: user.email,
-      name: user.username,
+      name: user.name,
       role: user.role,
       last_login_at: user.last_login_at,
       created_at: user.created_at
@@ -63,7 +66,9 @@ router.post('/signin', UsersValidator.signin, (req, res, next) => {
 
 router.post('/signout', (req, res, next) => {
 
-  let result = UsersManager.resetOtp(req.get('uuid'));
+  let result = UsersManager.resetToken(req.get('uuid'));
+
+  console.log(`/signout signed out: ${result}`);
   if (!result) next('User not found or invalid uuid');
 
   res.json({
@@ -80,6 +85,7 @@ router.get('/search', (req, res, next) => {
     limit: Math.max(req.query.limit || 100, 0), 
   };
 
+  console.log(`/search search user by ${searchData}`);
   let users = UsersManager.search(searchData);
 
   res.json({
@@ -88,7 +94,7 @@ router.get('/search', (req, res, next) => {
       require(`../view/jsonTemplate/search.json`),
       {
         email: user.email,
-        name: user.username,
+        name: user.name,
         role: user.role,
       }
     ))
