@@ -17,7 +17,7 @@ exports.parseUser = function(body) {
 exports.createUser = function(user) {
 
   user.password = hashPassword(user.password);
-  user.activate_code = uuidv1();
+  // user.activate_code = uuidv1();
   user.created_at = new Date();
   user.tokens = [];
   return usersDBAccess.createUser(user);
