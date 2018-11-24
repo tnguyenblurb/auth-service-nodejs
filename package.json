@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "node ./bin/www"
+    "test": "mocha"
   },
   "dependencies": {
     "bcrypt": "^3.0.2",
@@ -19,8 +19,5 @@
   },
   "devDependencies": {
     "request": "^2.88.0"
-  },
-  "scripts": {
-    "test": "mocha"
   }
 }

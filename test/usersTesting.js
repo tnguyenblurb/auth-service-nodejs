@@ -2,7 +2,7 @@ var expect  = require('chai').expect;
 var request = require('request');
 const uuidv1 = require('uuid/v1');
 
-const base_url = 'http://localhost:5000/api/';
+const base_url = 'http://localhost:3456/api/';
 const headers = {
   'X-Device': 'mobile',
   'X-Language': 'en',
@@ -24,7 +24,7 @@ function doSignup(name, email, password, role) {
     });
 }
 
-function doLogin(email, password, callback) {
+function doSignin(email, password, callback) {
   request({
     url: base_url + 'signin',
     method: 'POST',
@@ -170,7 +170,7 @@ describe('/signin', function(){
   }
 
   describe('error', function(){
-    it('should return error if password not match', function(done) {
+    it('should return error if email/password not match', function(done) {
       request({
         url: url,
         method: 'POST',
@@ -209,6 +209,54 @@ describe('/signin', function(){
   });
 });
 
+describe('/signout', function(){
+  const url = base_url + 'signout';
+  var options = {
+    url: url,
+    method: 'POST',
+    headers: headers,
+  }
+
+  describe('error', function(){
+    it('should return invalid uuid if uuid is invalid', function(done) {
+      request({
+        url: url,
+        method: 'POST',
+        headers: {
+          ...headers,
+          uuid: '34refe545234353432545435354'
+        }  
+      } , function(error, response, body) {
+        body = JSON.parse(body);
+        expect(response.statusCode).to.equal(500);
+        expect(body.error).to.equal('Invalid uuid');
+        done();
+      });
+    });
+  });
+
+  describe('success', function(){
+    it('should return success', function(done) {
+      let email = 'admin@gmail.com'; 
+      doSignin(email, '123456', function(uuid){
+        request({
+          ...options,
+          headers: {
+            ...headers,
+            uuid: uuid
+          }
+        }, function(error, response, body) {
+          body = JSON.parse(body);
+          expect(response.statusCode).to.equal(200);
+          expect(body.success).to.equal(true);
+          done();
+        });
+      });
+    });
+    
+  });
+});
+
 describe('/search', function(){
   const url = base_url + 'search?name=thanh';
   var options = {
@@ -217,10 +265,40 @@ describe('/search', function(){
   }
 
   describe('error', function(){
-    it('should return error permission denied if user is not admin role', function(done) {
+
+    it('should return uuid is required if uuid is missing', function(done) {
+      request({
+        ...options,
+        headers: {
+          ...headers
+        }
+      }, function(error, response, body) {
+        body = JSON.parse(body);
+        expect(response.statusCode).to.equal(500);
+        expect(body.error).to.equal('uuid is required');
+        done();
+      });
+    });
+
+    it('should return invalid uuid if uuid is invalid', function(done) {
+      request({
+        ...options,
+        headers: {
+          ...headers,
+          uuid: 'gdljdfdsjdlkf;sdjfl;sdjfsldfjdslf'
+        }
+      }, function(error, response, body) {
+        body = JSON.parse(body);
+        expect(response.statusCode).to.equal(500);
+        expect(body.error).to.equal('Invalid uuid');
+        done();
+      });
+    });
+
+    it('should return permission denied if user is not admin role', function(done) {
       let emailTest = 'test_user@gmail.com';
       doSignup('Test user', emailTest, '123456', 'user');
-      doLogin(emailTest, '123456', function(uuid){
+      doSignin(emailTest, '123456', function(uuid){
         request({
           ...options,
           headers: {
@@ -235,11 +313,40 @@ describe('/search', function(){
         });
       });
     });
+
+    it('should invalidate uuid after each request', function(done) {
+      doSignin('admin@gmail.com', '123456', function(uuid){
+        // first search 
+        request({
+          ...options,
+          headers: {
+            ...headers,
+            uuid: uuid
+          }
+        }, function(error, response, body) {
+          expect(response.statusCode).to.equal(200);
+
+          // second search 
+          request({
+            ...options,
+            headers: {
+              ...headers,
+              uuid: uuid
+            }
+          }, function(error, response, body) {
+            body = JSON.parse(body);
+            expect(response.statusCode).to.equal(500);
+            expect(body.error).to.equal('Invalid uuid');
+            done();
+          });
+        });
+      });
+    });
   });
 
   describe('success', function(){
     it('should return search results if user is admin role', function(done) {
-      doLogin('admin@gmail.com', '123456', function(uuid){
+      doSignin('admin@gmail.com', '123456', function(uuid){
         request({
           ...options,
           headers: {
@@ -260,7 +367,7 @@ describe('/search', function(){
     });
 
     it('should return the new uuid after each request', function(done) {
-      doLogin('admin@gmail.com', '123456', function(uuid){
+      doSignin('admin@gmail.com', '123456', function(uuid){
         request({
           ...options,
           headers: {
@@ -280,3 +387,4 @@ describe('/search', function(){
   });
 
 });
+

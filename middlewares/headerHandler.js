@@ -5,7 +5,7 @@ const authorizationConfig = require('../config/authorization');
 
 const authAndRegenerateOTP = (req, res, next) => {
   let uuid = req.get('uuid');
-  if (!uuid) return next('[authAndRegenerateOTP] uuid is required');
+  if (!uuid) return next('uuid is required');
   
   // authenciate by uuid
   let {user, token} = usersBusiness.authenticateByUUID(uuid);
