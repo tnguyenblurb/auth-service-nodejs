@@ -1,25 +1,25 @@
 const express = require('express');
 const router = express.Router();
 const { validationResult } = require('express-validator/check');
-var jsonTemplate = require('json-templater/object');
-const UsersManager = require('./usersManager');
-const UsersValidator = require('./UsersValidator');
-const config = require('../config/config');
+const jsonTemplate = require('json-templater/object');
+const usersBusiness = require('./usersBusiness');
+const usersValidator = require('./usersValidator');
+const config = require('../../config/config');
 
-router.post('/signup', UsersValidator.signup, (req, res, next) => {
+router.post('/signup', usersValidator.signup, (req, res, next) => {
   // validate input fields
   const errors = validationResult(req);
   if (!errors.isEmpty()) return next(errors.array());
 
-  let user = UsersManager.parseUser(req.body);
-  user = UsersManager.createUser(user);
+  let user = usersBusiness.parseUser(req.body);
+  user = usersBusiness.createUser(user);
 
   console.log(`/signup created user: ${user}`);
   // error page
-  if (!user) return next('Something went wrong!');
+  if (!user) return next('Something went wrong. Can not create user!');
   
   res.json(jsonTemplate(
-    require(`../view/jsonTemplate/signup.${req.get(config.XDeviceKey)}.json`),
+    require(`../../view/jsonTemplate/signup.${req.get(config.XDeviceKey)}.json`),
     {
       email: user.email,
       name: user.name,
@@ -30,30 +30,30 @@ router.post('/signup', UsersValidator.signup, (req, res, next) => {
 });
 
 router.get('/activate/:email/:code', (req, res, next) => {
-  let result = UsersManager.activate(req.params.email, req.params.code);
+  let result = usersBusiness.activate(req.params.email, req.params.code);
 
   if (!result) return next('Invalid code');
 
   res.json({message: 'Your account has been activated!'});
 });
 
-router.post('/signin', UsersValidator.signin, (req, res, next) => {
+router.post('/signin', usersValidator.signin, (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) return next(errors.array());
 
   let email = req.body.email;
   let password = req.body.password;
-  let {user, token} = UsersManager.authenticate(email, password);
+  let {user, token} = usersBusiness.login(email, password);
 
   console.log(`/signin authenticated: ${user}`);
   
   if (!user) return next('Invalid email/password!');
-  if (user.activate_code) return next (`Please activate your account by clicking at ${UsersManager.activateUrl(req, user)}`);
+  if (user.activate_code) return next (`Please activate your account by clicking at ${usersBusiness.activateUrl(req, user)}`);
 
   res.set('uuid', token.uuid);
 
   res.json(jsonTemplate(
-    require(`../view/jsonTemplate/signin.${req.get(config.XDeviceKey)}.json`),
+    require(`../../view/jsonTemplate/signin.${req.get(config.XDeviceKey)}.json`),
     {
       email: user.email,
       name: user.name,
@@ -66,10 +66,10 @@ router.post('/signin', UsersValidator.signin, (req, res, next) => {
 
 router.post('/signout', (req, res, next) => {
 
-  let result = UsersManager.resetToken(req.get('uuid'));
+  let result = usersBusiness.resetToken(req.get('uuid'));
 
   console.log(`/signout signed out: ${result}`);
-  if (!result) next('User not found or invalid uuid');
+  if (!result) next('Invalid uuid');
 
   res.json({
     success: true
@@ -86,12 +86,12 @@ router.get('/search', (req, res, next) => {
   };
 
   console.log(`/search search user by ${searchData}`);
-  let users = UsersManager.search(searchData);
+  let users = usersBusiness.search(searchData);
 
   res.json({
     success: true,
     data: users.map(user => jsonTemplate(
-      require(`../view/jsonTemplate/search.json`),
+      require(`../../view/jsonTemplate/search.json`),
       {
         email: user.email,
         name: user.name,

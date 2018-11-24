@@ -1,12 +1,12 @@
 const { check, body} = require('express-validator/check');
-const UsersManager = require('./usersManager');
+const usersDBAccess = require('./usersDBAccess');
 
 const usersValidator = {
   name: check('name').isLength({min: 1}),
   email: check('email').isEmail(),
   password: check('password').isLength({min: 6}).withMessage('Password must contain at least 6 letters.'),
   email_already_in_use: body('email').custom(email => {
-    if (UsersManager.findUserByEmail(email)) throw new Error('E-mail already in use');
+    if (usersDBAccess.findUserByEmail(email)) throw new Error('E-mail already in use');
 
     return true;
   }),

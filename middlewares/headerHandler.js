@@ -1,19 +1,31 @@
 const IGNORE_ACTIONS = /^(?!.*(\/signup|\/activate|\/signin|\/signout)).*$/; // list of actions don't need OTP in header
-const UsersManager = require('../user/usersManager');
+const usersBusiness = require('../components/users/usersBusiness');
 const config = require('../config/config');
+const authorizationConfig = require('../config/authorization');
 
-const OTPValidator = (req, res, next) => {
+const authAndRegenerateOTP = (req, res, next) => {
   let uuid = req.get('uuid');
-  if (!uuid) return next('Invalid uuid');
+  if (!uuid) return next('[authAndRegenerateOTP] uuid is required');
   
-  let token = UsersManager.validateAndRegenerateOTP(uuid);
+  // authenciate by uuid
+  let {user, token} = usersBusiness.authenticateByUUID(uuid);
+  if (!user || !token) return next('Invalid uuid');
 
-  // error page
-  if (!token) return next('Invalid uuid');
+  // authorize ACL
+  if (!authorizeUser(req, user)) return next('Permission denied!');
+
+  // regenerate UUID
+  let newToken = usersBusiness.regenerateToken(user, token);
   
-  res.set('uuid', token.uuid);
+  res.set('uuid', newToken.uuid);
 
   next();
+};
+
+const authorizeUser = (req, user) => {
+  let actions = authorizationConfig[user.role];
+  if (actions === 'all') return true;
+  return actions && actions.find(action => req.path.includes(action));
 };
 
 const headerValidator = (req, res, next) => {
@@ -22,6 +34,6 @@ const headerValidator = (req, res, next) => {
   };
 
   next();
-}
+};
 
-module.exports = {IGNORE_ACTIONS, OTPValidator, headerValidator};
+module.exports = {IGNORE_ACTIONS, authAndRegenerateOTP, headerValidator};
