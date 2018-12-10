@@ -15,6 +15,7 @@
     "express-validator": "^5.3.0",
     "json-templater": "^1.2.0",
     "mocha": "^5.2.0",
+    "mongoose": "^5.3.15",
     "morgan": "~1.9.0",
     "uuid": "^3.3.2"
   },
