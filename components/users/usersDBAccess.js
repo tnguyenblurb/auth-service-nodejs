@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const db = require('../../database/database');
 
 exports.createUser = function(user) {

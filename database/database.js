@@ -1,3 +1,44 @@
+const mongoose = require('mongoose');
+
+async function setup() {
+  await mongoose.connect(process.env.db_dev, {
+    autoReconnect: true,
+    reconnectTries: 1000000,
+    reconnectInterval: 3000
+  });
+
+  setupSchemas();
+
+}
+setup().catch(error => console.error(error.stack));
+
+function setupSchemas() {
+
+}
+
+mongoose.Promise = Promise;
+
+mongoose.connection.on('connected', () => {
+  console.log('Connection Established')
+});
+
+mongoose.connection.on('reconnected', () => {
+  console.log('Connection Reestablished')
+});
+
+mongoose.connection.on('disconnected', () => {
+  console.log('Connection Disconnected')
+});
+
+mongoose.connection.on('close', () => {
+  console.log('Connection Closed')
+});
+
+mongoose.connection.on('error', (error) => {
+  console.log('ERROR: ' + error)
+});
+
+
 const path = require('path');
 const fs = require('fs');
 const uuidv1 = require('uuid/v1');

@@ -1,7 +1,7 @@
 require('dotenv').config();
 var express = require('express');
 var path = require('path');
-
+require('./database/database.js');
 const config = require('./config/config');
 var headerHandler = require('./middlewares/headerHandler');
 var errorHandler = require('./middlewares/errorHandler');
