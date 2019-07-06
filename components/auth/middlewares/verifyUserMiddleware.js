@@ -1,49 +1,49 @@
 const UserModel = require('../../users/models/userModel');
-const crypto = require('crypto');
 const Utils = require('../../../utils/utils');
 
 exports.hasAuthValidFields = (req, res, next) => {
     let errors = [];
-
-    if (req.body) {
-        if (!req.body.email) {
-            errors.push('Missing email field');
-        }
-        if (!req.body.password) {
-            errors.push('Missing password field');
-        }
-
-        if (errors.length) {
-            return res.status(400).send({errors: errors.join(',')});
-        } else {
-            return next();
-        }
-    } else {
+    if (!req.body) {
         return res.status(400).send({errors: 'Missing email and password fields'});
     }
+
+    if (!req.body.email) {
+        errors.push('Missing email field');
+    }
+    if (!req.body.password) {
+        errors.push('Missing password field');
+    }
+
+    if (errors.length) {
+        return res.status(400).send({errors: errors.join(',')});
+    }
+
+    return next();
 };
 
 exports.isPasswordAndUserMatch = (req, res, next) => {
     UserModel.findByEmail(req.body.email)
         .then((user)=>{
-            if(!user[0]){
+            if(!user){
                 res.status(404).send({});
-            }else{
-                let passwordFields = user[0].password.split('$');
-                let salt = passwordFields[0];
-                let hash = Utils.hash(req.body.password, salt);
-                if (hash === passwordFields[1]) {
-                    req.body = {
-                        userId: user[0]._id,
-                        email: user[0].email,
-                        permissionLevel: user[0].permissionLevel,
-                        provider: 'email',
-                        name: user[0].firstName + ' ' + user[0].lastName,
-                    };
-                    return next();
-                } else {
-                    return res.status(400).send({errors: ['Invalid e-mail or password']});
-                }
+                return;
             }
+
+            let passwordFields = user.password.split('$');
+            let salt = passwordFields[0];
+            let hash = Utils.hash(req.body.password, salt);
+
+            if (hash !== passwordFields[1]) {
+                return res.status(400).send({errors: ['Invalid e-mail or password']});
+            }
+
+            req.body = {
+                userId: user.id,
+                email: user.email,
+                role: user.role,
+                provider: 'email',
+                name: user.firstName + ' ' + user.lastName,
+            };
+            return next();
         });
 };

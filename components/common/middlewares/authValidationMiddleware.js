@@ -1,6 +1,5 @@
 const jwt = require('jsonwebtoken');
-const secret = process.env.jwt_secret;
-const crypto = require('crypto');
+const jwtSecret = process.env.jwt_secret;
 const Utils = require('../../../utils/utils');
 
 exports.verifyRefreshBodyField = (req, res, next) => {
@@ -14,31 +13,31 @@ exports.verifyRefreshBodyField = (req, res, next) => {
 exports.validRefreshNeeded = (req, res, next) => {
     let b = new Buffer(req.body.refresh_token, 'base64');
     let refresh_token = b.toString();
-    let hash = Utils.hash(req.jwt.userId + secret, req.jwt.refreshKey);
-    if (hash === refresh_token) {
-        req.body = req.jwt;
-        return next();
-    } else {
+    let hash = Utils.hash(req.jwt.userId + jwtSecret, req.jwt.refreshKey);
+    if (hash !== refresh_token) {
         return res.status(400).send({error: 'Invalid refresh token'});
-    }
+    } 
+
+    req.body = req.jwt;
+    return next();
 };
 
 
 exports.validJWTNeeded = (req, res, next) => {
-    if (req.headers['authorization']) {
-        try {
-            let authorization = req.headers['authorization'].split(' ');
-            if (authorization[0] !== 'Bearer') {
-                return res.status(401).send();
-            } else {
-                req.jwt = jwt.verify(authorization[1], secret);
-                return next();
-            }
-
-        } catch (err) {
-            return res.status(403).send();
-        }
-    } else {
+    if (!req.headers['authorization']) {
         return res.status(401).send();
+    }
+
+    try {
+        let authorization = req.headers['authorization'].split(' ');
+        if (authorization[0] !== 'Bearer') {
+            return res.status(401).send();
+        } 
+        
+        req.jwt = jwt.verify(authorization[1], jwtSecret);
+        return next();
+
+    } catch (err) {
+        return res.status(403).send();
     }
 };

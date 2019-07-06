@@ -1,21 +1,26 @@
-const { check, body} = require('express-validator/check');
-const { validationResult } = require('express-validator/check');
-const usersDBAccess = require('../models/usersDBAccess');
+const { check, body, validationResult} = require('express-validator/check');
+const UserModel = require('../models/userModel');
 
 const userValidator = {
-  name: check('name').isLength({min: 1}),
+  first_name: check('first_name').not().isEmpty(),
+  last_name: check('last_name').not().isEmpty(),
   email: check('email').isEmail(),
   password: check('password').isLength({min: 6}).withMessage('Password must contain at least 6 letters.'),
-  email_already_in_use: body('email').custom(email => {
-    if (usersDBAccess.findUserByEmail(email)) throw new Error('E-mail already in use');
-
+  email_already_in_use: body('email').custom(async email => {
+    let user = await UserModel.findByEmail(email);
+    if (user) {
+      console.log('E-mail already in use');
+      throw new Error('E-mail already in use');
+    };
+    
     return true;
   }),
   code: check('code').isUUID,
 };
 
 exports.signup = [
-  userValidator.name,
+  userValidator.first_name,
+  userValidator.last_name,
   userValidator.email,
   userValidator.password,
   userValidator.email_already_in_use

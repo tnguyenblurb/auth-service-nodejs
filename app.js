@@ -1,13 +1,15 @@
 require('dotenv').config();
 const express = require('express');
 const path = require('path');
+const helmet = require('helmet');
+const cors = require('cors');
+const morgan = require('morgan');
+const bodyParser = require('body-parser');
+
 require('./database/database.js');
-// const config = require('./config/config');
-// var headerHandler = require('./middlewares/headerHandler');
-var errorHandler = require('./components/common/middlewares/errorHandlerMiddleware');
-// var usersRouter = require('./components/users/routesConfig');
-const AuthRouter = require('./components/auth/routesConfig');
-const UsersRouter = require('./users/components/routesConfig');
+// var errorHandler = require('./components/common/middlewares/errorHandlerMiddleware');
+const authRouter = require('./components/auth/routesConfig');
+const usersRouter = require('./components/users/routesConfig');
 
 const app = express();
 
@@ -40,18 +42,11 @@ app.use(function (req, res, next) {
 // using bodyParser to parse JSON bodies into JS objects
 app.use(bodyParser.json());
 
-// middleware validate header fields
-// app.use(headerHandler.headerValidator);
-
-// middleware authenticate, authorize and regenerate OTP
-// app.use(headerHandler.IGNORE_ACTIONS, headerHandler.authAndRegenerateOTP);
-// app.use('/api', usersRouter);
-
-AuthRouter.routesConfig(app);
-UsersRouter.routesConfig(app);
+app.use('/api', usersRouter);
+app.use('/api', authRouter);
 
 // middleware handling errors 
-app.use(errorHandler);
+// app.use(errorHandler);
 
 app.listen(process.env.port, () => console.log(`Example app listening on port ${process.env.port}!`));
 

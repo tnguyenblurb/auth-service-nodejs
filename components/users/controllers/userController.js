@@ -1,11 +1,10 @@
 const UserModel = require('../models/userModel');
 const Utils = require('../../../utils/utils');
-const crypto = require('crypto');
 
-exports.insert = (req, res) => {
+exports.create = (req, res) => {
     req.body.password = Utils.generatePassword(req.body.password);
     req.body.permissionLevel = 1;
-    UserModel.createUser(req.body)
+    UserModel.create(req.body)
         .then((result) => {
             res.status(201).send({id: result._id});
         });
@@ -37,7 +36,7 @@ exports.patchById = (req, res) => {
         req.body.password = Utils.generatePassword(req.body.password);
     }
 
-    UserModel.patchUser(req.params.userId, req.body)
+    UserModel.update(req.params.userId, req.body)
         .then((result) => {
             res.status(204).send({});
         });
