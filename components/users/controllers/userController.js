@@ -1,16 +1,17 @@
 const UserModel = require('../models/userModel');
 const Utils = require('../../../utils/utils');
 
-exports.create = (req, res) => {
+exports.create = async (req, res) => {
     req.body.password = Utils.generatePassword(req.body.password);
     req.body.permissionLevel = 1;
-    UserModel.create(req.body)
-        .then((result) => {
-            res.status(201).send({id: result._id});
-        });
+    let user = await UserModel.create(req.body);
+    if (!user) {
+        return res.status(500).send({errors: 'Saving error!'});
+    }
+    return res.status(201).send({id: user.get('id')});
 };
 
-exports.list = (req, res) => {
+exports.list = async (req, res) => {
     let limit = req.query.limit && req.query.limit <= 100 ? parseInt(req.query.limit) : 10;
     let page = 0;
     if (req.query) {
@@ -19,28 +20,41 @@ exports.list = (req, res) => {
             page = Number.isInteger(req.query.page) ? req.query.page : 0;
         }
     }
-    UserModel.list(limit, page)
-        .then((result) => {
-            res.status(200).send(result);
-        })
+    let result = await UserModel.list(limit, page);
+
+    return res.status(200).send(result);
 };
 
-exports.getById = (req, res) => {
-    UserModel.findById(req.params.userId)
-        .then((result) => {
-            res.status(200).send(result);
-        });
+exports.getById = async (req, res) => {
+    let result = await UserModel.findById(req.params.userId);
+    return res.status(200).send(result);
 };
-exports.patchById = (req, res) => {
+exports.patchById = async (req, res) => {
     if (req.body.password) {
         req.body.password = Utils.generatePassword(req.body.password);
     }
 
-    UserModel.update(req.params.userId, req.body)
-        .then((result) => {
-            res.status(204).send({});
-        });
+    if (req.jwt.email !== req.body.email.toLowerCase()) {
+        let existedUser = await UserModel.findByEmail(req.body.email);
+        if (existedUser) {
+            return res.status(400).send({errors: 'E-mail already in use'});
+        }
+    }
 
+    let updateData = {
+        first_name: req.body.first_name,
+        last_name: req.body.last_name,
+        password: req.body.password,
+        email: req.body.email.toLowerCase()
+    };    
+
+    let user = await UserModel.update(req.params.userId, updateData);
+
+    if (!user) {
+        return res.status(500).send({errors: 'Saving error!'});
+    }
+
+    res.status(204).send({});
 };
 
 exports.removeById = (req, res) => {

@@ -5,14 +5,17 @@ const helmet = require('helmet');
 const cors = require('cors');
 const morgan = require('morgan');
 const bodyParser = require('body-parser');
+const swaggerUi = require('swagger-ui-express');
+const swaggerDocument = require('./swagger.json');
 
 require('./database/database.js');
 // var errorHandler = require('./components/common/middlewares/errorHandlerMiddleware');
-const authRouter = require('./components/auth/routesConfig');
-const usersRouter = require('./components/users/routesConfig');
+const authRouter = require('./components/auth/authRoutesConfig');
+const usersRouter = require('./components/users/userRoutesConfig');
 
 const app = express();
 
+app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));

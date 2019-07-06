@@ -6,20 +6,20 @@ exports.User = bookshelf.Model.extend({
 })
 
 exports.findById = async (userId) => {
-    let user = await this.User.where('id', userId).fetch();
+    let user = await this.User.where({'id': userId, 'deleted_at': null}).fetch();
     
     return user;
 }
 
 exports.findByEmail = async (email) => {
-    let user = await this.User.where({'email': email}).fetch();
+    let user = await this.User.where({'email': email.toLowerCase(), 'deleted_at': null}).fetch();
     console.log(JSON.stringify(user));
     return user;
 };
 
 exports.list = async (pageSize, page) => {
     console.log('userModel.list');
-    let results = await this.User.query({}).fetchPage({
+    let results = await this.User.query({'deleted_at': null}).fetchPage({
         pageSize: pageSize,
         page: page
     });
@@ -28,41 +28,40 @@ exports.list = async (pageSize, page) => {
 }
 
 exports.create = async (userData) => {
-    let user = await this.User.forge({
-        first_name: userData.first_name,
-        last_name: userData.last_name,
-        email: userData.email,
-        password: userData.password
-    }).save();
-    
-    return user;
+    try {
+        let user = await this.User.forge({
+            first_name: userData.first_name,
+            last_name: userData.last_name,
+            email: userData.email.toLowerCase(),
+            password: userData.password
+        }).save();
+
+        return user;
+    } catch (err) {
+        console.log(JSON.stringify(err));
+        return null;
+    }
 }
 
 exports.update = async (id, userData) => {
     let user = await this.findById(id);
-    for (let i in userData) {
-        user[i] = userData[i];
+    for (const [key, value] of Object.entries(userData)) {
+        user.set(key, value);    
     }
 
-    user = await user.save();
-
-    return user;
-}
-
-exports.update = async (id, userData) => {
-    let user = await this.findById(id);
-    for (let i in userData) {
-        user[i] = userData[i];
+    try {
+        user = await user.save();
+        return user;
     }
-
-    user = await user.save();
-
-    return user;
+    catch (err) {
+        console.log(JSON.stringify(err));
+        return null;
+    }
 }
 
 exports.removeById = async (id) => {
     let user = await this.findById(id);
-    user.deleted_at = new Date();
+    user.set('deleted_at', new Date());
     user = await user.save();
 
     return user;

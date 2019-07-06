@@ -21,29 +21,27 @@ exports.hasAuthValidFields = (req, res, next) => {
     return next();
 };
 
-exports.isPasswordAndUserMatch = (req, res, next) => {
-    UserModel.findByEmail(req.body.email)
-        .then((user)=>{
-            if(!user){
-                res.status(404).send({});
-                return;
-            }
+exports.isPasswordAndUserMatch = async (req, res, next) => {
+    let user = await UserModel.findByEmail(req.body.email);
+    if(!user){
+        res.status(404).send({});
+        return;
+    }
 
-            let passwordFields = user.password.split('$');
-            let salt = passwordFields[0];
-            let hash = Utils.hash(req.body.password, salt);
+    let passwordFields = user.get('password').split('$');
+    let salt = passwordFields[0];
+    let hash = Utils.hash(req.body.password, salt);
 
-            if (hash !== passwordFields[1]) {
-                return res.status(400).send({errors: ['Invalid e-mail or password']});
-            }
+    if (hash !== passwordFields[1]) {
+        return res.status(400).send({errors: ['Invalid e-mail or password']});
+    }
 
-            req.body = {
-                userId: user.id,
-                email: user.email,
-                role: user.role,
-                provider: 'email',
-                name: user.firstName + ' ' + user.lastName,
-            };
-            return next();
-        });
+    req.body = {
+        userId: user.id,
+        email: user.email,
+        role: user.role,
+        provider: 'email',
+        name: user.firstName + ' ' + user.lastName,
+    };
+    return next();
 };

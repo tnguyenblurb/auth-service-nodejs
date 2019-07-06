@@ -1,4 +1,4 @@
-const { check, body, validationResult} = require('express-validator/check');
+const { check, body, validationResult} = require('express-validator');
 const UserModel = require('../models/userModel');
 
 const userValidator = {
@@ -23,7 +23,7 @@ exports.signup = [
   userValidator.last_name,
   userValidator.email,
   userValidator.password,
-  userValidator.email_already_in_use
+  userValidator.email_already_in_use,
 ]
 exports.signin = [
   userValidator.email,
@@ -35,8 +35,9 @@ exports.activate = [
 
 exports.handleInvalid = (req, res, next) => {
     const errors = validationResult(req);
-    if (errors.length) {
-        return res.status(400).send({errors: errors.join(',')});
+    console.log(JSON.stringify(errors));
+    if (!errors.isEmpty()) {
+        return res.status(400).send(errors);
     } else {
         return next();
     }
