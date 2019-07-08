@@ -4,8 +4,8 @@ var router = express.Router();
 const constants = require('../../utils/constants');
 const UserValidatorMiddleware = require('./middlewares/userValidatorMiddleware');
 const UsersController = require('./controllers/userController');
-const PermissionMiddleware = require('../common/middlewares/authPermissionMiddleware');
-const ValidationMiddleware = require('../common/middlewares/authValidationMiddleware');
+const PermissionMiddleware = require('../common/middlewares/permissionMiddleware');
+const AuthValidationMiddleware = require('../auth/middlewares/authValidationMiddleware');
 
 const ADMIN = constants.role.ADMIN;
 const USER = constants.role.USER;
@@ -16,24 +16,24 @@ router.post('/users', [
     UsersController.create
 ]);
 router.get('/users', [
-    ValidationMiddleware.validJWTNeeded,
+    AuthValidationMiddleware.validJWTNeeded,
     PermissionMiddleware.minimumPermissionLevelRequired(ADMIN),
     UsersController.list
 ]);
 router.get('/users/:userId', [
-    ValidationMiddleware.validJWTNeeded,
+    AuthValidationMiddleware.validJWTNeeded,
     PermissionMiddleware.minimumPermissionLevelRequired(USER),
     PermissionMiddleware.onlySameUserOrAdminCanDoThisAction,
     UsersController.getById
 ]);
 router.patch('/users/:userId', [
-    ValidationMiddleware.validJWTNeeded,
+    AuthValidationMiddleware.validJWTNeeded,
     PermissionMiddleware.minimumPermissionLevelRequired(USER),
     PermissionMiddleware.onlySameUserOrAdminCanDoThisAction,
     UsersController.patchById
 ]);
 router.delete('/users/:userId', [
-    ValidationMiddleware.validJWTNeeded,
+    AuthValidationMiddleware.validJWTNeeded,
     PermissionMiddleware.minimumPermissionLevelRequired(ADMIN),
     UsersController.removeById
 ]);

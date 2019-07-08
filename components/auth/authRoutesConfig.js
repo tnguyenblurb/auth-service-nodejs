@@ -1,13 +1,14 @@
 var express = require('express');
 var router = express.Router();
 
-const VerifyUserMiddleware = require('./middlewares/verifyUserMiddleware');
 const AuthController = require('./controllers/authController');
-const AuthValidationMiddleware = require('../common/middlewares/authValidationMiddleware');
+const AuthValidationMiddleware = require('./middlewares/authValidationMiddleware');
+const UserValidatorMiddleware = require('../users/middlewares/userValidatorMiddleware');
 
 router.post('/auth', [
-    VerifyUserMiddleware.hasAuthValidFields,
-    VerifyUserMiddleware.isPasswordAndUserMatch,
+    UserValidatorMiddleware.auth,
+    UserValidatorMiddleware.handleInvalid,
+    AuthValidationMiddleware.isPasswordAndUserMatch,
     AuthController.doLogin
 ]);
 

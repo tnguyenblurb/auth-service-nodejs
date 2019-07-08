@@ -1,12 +1,13 @@
 const UserModel = require('../models/userModel');
 const Utils = require('../../../utils/utils');
+var nodemailer = require("nodemailer");
 
 exports.create = async (req, res) => {
     req.body.password = Utils.generatePassword(req.body.password);
     req.body.permissionLevel = 1;
     let user = await UserModel.create(req.body);
     if (!user) {
-        return res.status(500).send({errors: 'Saving error!'});
+        return res.status(500).send({errors: ['Saving error!']});
     }
     return res.status(201).send({id: user.get('id')});
 };
@@ -37,7 +38,7 @@ exports.patchById = async (req, res) => {
     if (req.jwt.email !== req.body.email.toLowerCase()) {
         let existedUser = await UserModel.findByEmail(req.body.email);
         if (existedUser) {
-            return res.status(400).send({errors: 'E-mail already in use'});
+            return res.status(400).send({errors: ['E-mail already in use']});
         }
     }
 
@@ -51,7 +52,7 @@ exports.patchById = async (req, res) => {
     let user = await UserModel.update(req.params.userId, updateData);
 
     if (!user) {
-        return res.status(500).send({errors: 'Saving error!'});
+        return res.status(500).send({errors: ['Saving error!']});
     }
 
     res.status(204).send({});

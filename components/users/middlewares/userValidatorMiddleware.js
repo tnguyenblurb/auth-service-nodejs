@@ -25,8 +25,9 @@ exports.signup = [
   userValidator.password,
   userValidator.email_already_in_use,
 ]
-exports.signin = [
-  userValidator.email,
+exports.auth = [
+  check('email').not().isEmpty(),
+  check('password').not().isEmpty(),
 ];
 
 exports.activate = [
